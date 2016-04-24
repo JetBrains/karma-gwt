@@ -20,11 +20,11 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public abstract class KarmaTest {
 
-  protected KarmaTest(String name) {
+  KarmaTest(String name) {
     this(name, null);
   }
 
-  protected <T extends Exception> KarmaTest(String name, Class<T> expectedException) {
+  <T extends Exception> KarmaTest(String name, Class<T> expectedException) {
     myName = name;
     myExpectedException = expectedException;
   }
@@ -38,18 +38,31 @@ public abstract class KarmaTest {
   private JavaScriptObject myRejectFunction;
 
   public void succeed() {
-    exec(myAcceptFunction, null);
+    if (myExpectedException == null) {
+      exec(myAcceptFunction, null);
+    } else {
+      exec(myRejectFunction, new Throwable("expected exception, but did not see one"));
+    }
   }
 
   public void fail(Throwable failure) {
-    exec(myRejectFunction, failure);
+    if (myExpectedException == null) {
+      KarmaTestSuiteRunner.printStackTrace(failure);
+      exec(myRejectFunction, failure);
+    } else {
+      if (myExpectedException.equals(failure.getClass())) {
+        exec(myAcceptFunction, null);
+      } else {
+        exec(myRejectFunction, new Throwable("received wrong type of exception: " + failure.getClass()));
+      }
+    }
   }
 
   public void fail(String message) {
     fail(new Throwable(message));
   }
 
-  public void makeAsync() {
+  void makeAsync() {
     myResultAsync = true;
   }
 
@@ -68,23 +81,10 @@ public abstract class KarmaTest {
       myRejectFunction = reject;
       run();
       if (!myResultAsync) {
-        if (myExpectedException == null) {
-          exec(accept, null);
-        } else {
-          exec(reject, new Throwable("expected exception, but did not see one"));
-        }
+        succeed();
       }
     } catch (Throwable exception) {
-      if (myExpectedException == null) {
-        KarmaTestSuiteRunner.printStackTrace(exception);
-        exec(reject, exception);
-      } else {
-        if (myExpectedException.equals(exception.getClass())) {
-          exec(accept, null);
-        } else {
-          exec(reject, new Throwable("received wrong type of exception: " + exception.getClass()));
-        }
-      }
+      fail(exception);
     }
   }
 

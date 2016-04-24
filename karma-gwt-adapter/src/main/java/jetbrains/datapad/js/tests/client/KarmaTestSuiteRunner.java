@@ -27,7 +27,11 @@ public class KarmaTestSuiteRunner {
 
   private KarmaTest myCurrentlyRunningTest;
 
-  public KarmaTestSuiteRunner(KarmaTestSuite... testSuites) {
+  public static void run(KarmaTestSuite... testSuites) {
+    new KarmaTestSuiteRunner(testSuites).run();
+  }
+
+  private KarmaTestSuiteRunner(KarmaTestSuite... testSuites) {
     myTestSuites = testSuites;
   }
 
@@ -84,7 +88,6 @@ public class KarmaTestSuiteRunner {
     GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
       @Override
       public void onUncaughtException(Throwable throwable) {
-        printStackTrace(throwable);
         myCurrentlyRunningTest.fail(throwable);
       }
     });
@@ -99,7 +102,7 @@ public class KarmaTestSuiteRunner {
     $wnd.logError(text);
   }-*/;
 
-  public static void printStackTrace(Throwable event) {
+  static void printStackTrace(Throwable event) {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(event).append("\n");
     for (StackTraceElement stackTraceElement : event.getStackTrace()) {
@@ -140,10 +143,6 @@ public class KarmaTestSuiteRunner {
 
   void setRunningTest(KarmaTest runningTest) {
     myCurrentlyRunningTest = runningTest;
-  }
-
-  protected KarmaTest getRunningTest() {
-    return myCurrentlyRunningTest;
   }
 
 }

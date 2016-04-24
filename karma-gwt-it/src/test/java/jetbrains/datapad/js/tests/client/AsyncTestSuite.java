@@ -16,11 +16,38 @@
 
 package jetbrains.datapad.js.tests.client;
 
+import com.google.gwt.user.client.Timer;
+
 import java.util.ArrayList;
 
 class AsyncTestSuite extends KarmaTestSuite {
   @Override
   protected void registerTests(ArrayList<KarmaTest> tests) {
-
+    tests.add(new KarmaTest("async test") {
+      @Override
+      protected void run() throws Throwable {
+        makeAsync();
+        Timer t = new Timer() {
+          @Override
+          public void run() {
+            succeed();
+          }
+        };
+        t.schedule(500);
+      }
+    });
+    tests.add(new KarmaTest("async error test", RuntimeException.class) {
+      @Override
+      protected void run() throws Throwable {
+        makeAsync();
+        Timer t = new Timer() {
+          @Override
+          public void run() {
+            throw new RuntimeException("oops");
+          }
+        };
+        t.schedule(500);
+      }
+    });
   }
 }

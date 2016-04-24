@@ -20,6 +20,6 @@ import com.google.gwt.core.client.EntryPoint;
 
 public class TestModule implements EntryPoint {
   public void onModuleLoad() {
-    new KarmaTestSuiteRunner(new TestSuite(), new AsyncTestSuite()).run();
+    KarmaTestSuiteRunner.run(new TestSuite(), new AsyncTestSuite());
   }
 }

@@ -22,13 +22,13 @@ class TestSuite extends KarmaTestSuite {
 
   @Override
   protected void registerTests(ArrayList<KarmaTest> tests) {
-    tests.add(new KarmaTest("empty passing test") {
+    tests.add(new KarmaTest("simple passing test") {
       @Override
       protected void run() throws Throwable {
 
       }
     });
-    tests.add(new KarmaTest("empty failing test", RuntimeException.class) {
+    tests.add(new KarmaTest("simple error test", RuntimeException.class) {
       @Override
       protected void run() throws Throwable {
         throw new RuntimeException("oops");
