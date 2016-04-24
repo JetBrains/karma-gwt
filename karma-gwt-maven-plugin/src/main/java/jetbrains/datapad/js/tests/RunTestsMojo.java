@@ -69,9 +69,11 @@ public class RunTestsMojo extends AbstractMojo {
       throws MojoExecutionException {
 
     initVars();
-    runAction(this::initKarmaAdapter, "failed to install Karma");
-    runAction(this::initKarmaRunner, "failed to execute Karma Runner");
-
+    if (runAction(this::setupKarma, "failed to install Karma") && runAction(this::runKarma, "failed to execute Karma Runner")) {
+      getLog().info("Success");
+    } else {
+      getLog().error("Failure");
+    }
   }
 
   private void initVars() {
@@ -84,7 +86,7 @@ public class RunTestsMojo extends AbstractMojo {
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
   }
 
-  private void initKarmaRunner() throws URISyntaxException, IOException {
+  private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
     URI libs = this.getClass().getResource(LIB_DIR).toURI();
     processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
       try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
@@ -100,17 +102,21 @@ public class RunTestsMojo extends AbstractMojo {
                 collect(Collectors.toList()),
             Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
       }
-
     });
+    ProcessBuilder processBuilder = new ProcessBuilder("npm");
+    processBuilder.command().add("install");
+    Process installDepProcess = processBuilder.inheritIO().directory(myOutputPath.toFile()).start();
+    return installDepProcess.waitFor() == 0;
   }
 
-  private void initKarmaAdapter() throws URISyntaxException, IOException {
+  private boolean runKarma() throws URISyntaxException, IOException {
     Path targetDirectory = outputDirectory.toPath().resolve(ADAPTER_DIR);
     URI resourceDirectory = this.getClass().getResource(ADAPTER_DIR).toURI();
     processResources(resourceDirectory, fs -> {
       Files.createDirectories(targetDirectory);
       return fs.provider().getPath(resourceDirectory);
     }, resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString())));
+    return true;
   }
 
   private interface ResourceProcessor {
@@ -135,13 +141,13 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private interface Action {
-    void run() throws URISyntaxException, IOException;
+    boolean run() throws URISyntaxException, IOException, InterruptedException;
   }
 
-  private void runAction(Action action, String errorMessage) throws MojoExecutionException {
+  private boolean runAction(Action action, String errorMessage) throws MojoExecutionException {
     try {
-      action.run();
-    } catch (URISyntaxException | IOException e) {
+      return action.run();
+    } catch (URISyntaxException | IOException | InterruptedException e) {
       e.printStackTrace();
       throw new MojoExecutionException(errorMessage);
     }
