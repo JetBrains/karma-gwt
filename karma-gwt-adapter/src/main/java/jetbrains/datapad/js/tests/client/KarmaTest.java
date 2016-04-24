@@ -21,18 +21,18 @@ import com.google.gwt.core.client.JavaScriptObject;
 public abstract class KarmaTest {
 
   protected KarmaTest(String name) {
-    this(name, false);
+    this(name, null);
   }
 
-  public KarmaTest(String name, boolean expectFailure) {
+  protected <T extends Exception> KarmaTest(String name, Class<T> expectedException) {
     myName = name;
-    myFailureExpected = expectFailure;
+    myExpectedException = expectedException;
   }
 
   protected abstract void run() throws Throwable;
 
   private String myName;
-  private boolean myFailureExpected;
+  private Class myExpectedException;
   private boolean myResultAsync = false;
   private JavaScriptObject myAcceptFunction;
   private JavaScriptObject myRejectFunction;
@@ -68,17 +68,29 @@ public abstract class KarmaTest {
       myRejectFunction = reject;
       run();
       if (!myResultAsync) {
-        exec(accept, null);
+        if (myExpectedException == null) {
+          exec(accept, null);
+        } else {
+          exec(reject, new Throwable("expected exception, but did not see one"));
+        }
       }
     } catch (Throwable exception) {
-      KarmaTestSuiteRunner.printStackTrace(exception);
-      exec(reject, exception);
+      if (myExpectedException == null) {
+        KarmaTestSuiteRunner.printStackTrace(exception);
+        exec(reject, exception);
+      } else {
+        if (myExpectedException.equals(exception.getClass())) {
+          exec(accept, null);
+        } else {
+          exec(reject, new Throwable("received wrong type of exception: " + exception.getClass()));
+        }
+      }
     }
   }
 
   JavaScriptObject connect(KarmaTestSuiteRunner testSuiteRunner) {
     return connect(testSuiteRunner, myName);
-  };
+  }
 
   private native JavaScriptObject connect(KarmaTestSuiteRunner testSuiteRunner, String testName) /*-{
     var $this = this,
