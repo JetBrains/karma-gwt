@@ -69,13 +69,8 @@ public class RunTestsMojo extends AbstractMojo {
       throws MojoExecutionException {
 
     initVars();
-    try {
-      initKarmaRunner();
-      initKarmaAdapter();
-    } catch (URISyntaxException | IOException e) {
-      e.printStackTrace();
-      throw new MojoExecutionException("failed to prepare KarmaGWT");
-    }
+    runAction(this::initKarmaAdapter, "failed to install Karma");
+    runAction(this::initKarmaRunner, "failed to execute Karma Runner");
 
   }
 
@@ -105,6 +100,7 @@ public class RunTestsMojo extends AbstractMojo {
                 collect(Collectors.toList()),
             Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
       }
+
     });
   }
 
@@ -127,7 +123,7 @@ public class RunTestsMojo extends AbstractMojo {
 
   private void processResources(URI contentUri, ContainerProvider containerProvider, ResourceProcessor processor) throws URISyntaxException, IOException {
     try (
-        FileSystem fs = FileSystems.newFileSystem(contentUri, Collections.emptyMap());
+        FileSystem fs = FileSystems.newFileSystem(contentUri, Collections.emptyMap())
     ) {
       Path containerPath = containerProvider.getContainer(fs);
       try (DirectoryStream<Path> ds = Files.newDirectoryStream(containerPath)) {
@@ -135,6 +131,19 @@ public class RunTestsMojo extends AbstractMojo {
           processor.process(p);
         }
       }
+    }
+  }
+
+  private interface Action {
+    void run() throws URISyntaxException, IOException;
+  }
+
+  private void runAction(Action action, String errorMessage) throws MojoExecutionException {
+    try {
+      action.run();
+    } catch (URISyntaxException | IOException e) {
+      e.printStackTrace();
+      throw new MojoExecutionException(errorMessage);
     }
   }
 
