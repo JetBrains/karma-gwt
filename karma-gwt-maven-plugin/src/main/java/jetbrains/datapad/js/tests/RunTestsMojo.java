@@ -78,6 +78,7 @@ public class RunTestsMojo extends AbstractMojo {
 
   private String myTestRunner;
   private Path myOutputPath;
+  private Path myBuildPath;
   private String myTestModules;
   private Path myKarmaConfig;
 
@@ -95,7 +96,8 @@ public class RunTestsMojo extends AbstractMojo {
     } else {
       myTestRunner = projectArtifactId + "-" + projectVersion;
     }
-    myOutputPath = outputDirectory.toPath();
+    myOutputPath = outputDirectory.toPath().getParent();
+    myBuildPath = outputDirectory.toPath();
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
   }
 
@@ -109,14 +111,14 @@ public class RunTestsMojo extends AbstractMojo {
           lines.add(line);
         }
         String rFileName = resource.getFileName().toString();
-        Path rPath = myOutputPath.resolve(rFileName);
+        Path rPath = myBuildPath.resolve(rFileName);
         if (rFileName.equals("karma.conf.js")) {
           myKarmaConfig = rPath;
         }
         Files.write(
             rPath,
             lines.stream().map(s ->
-                BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(myOutputPath.resolve(myTestRunner).toString())).
+                BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(myBuildPath.resolve(myTestRunner).toString())).
                 collect(Collectors.toList()),
             Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
       }
@@ -131,8 +133,8 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private boolean runKarma() throws URISyntaxException, IOException, InterruptedException {
-    Path targetDirectory = outputDirectory.toPath().resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
-    Path karma = outputDirectory.toPath().resolve(Paths.get("node_modules", ".bin", "karma"));
+    Path targetDirectory = myOutputPath.resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
+    Path karma = myOutputPath.resolve(Paths.get("node_modules", ".bin", "karma"));
     URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
     processResources(resourceDirectory, fs -> {
       Files.createDirectories(targetDirectory);
