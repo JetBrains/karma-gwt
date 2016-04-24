@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 
 @Mojo(name = "run-tests", defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class RunTestsMojo extends AbstractMojo {
@@ -135,7 +137,7 @@ public class RunTestsMojo extends AbstractMojo {
     processResources(resourceDirectory, fs -> {
       Files.createDirectories(targetDirectory);
       return fs.provider().getPath(resourceDirectory);
-    }, resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString())));
+    }, resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString()), REPLACE_EXISTING));
     return runProcess(karma.toAbsolutePath().toString(), "start", myKarmaConfig.toAbsolutePath().toString());
   }
 
