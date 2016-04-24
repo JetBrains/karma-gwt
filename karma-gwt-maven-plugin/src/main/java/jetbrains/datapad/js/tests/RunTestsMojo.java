@@ -40,8 +40,21 @@ import java.util.stream.Collectors;
 @Mojo(name = "run-tests", defaultPhase = LifecyclePhase.INTEGRATION_TEST)
 public class RunTestsMojo extends AbstractMojo {
 
-  private static final String LIB_DIR = "lib";
-  private static final String ADAPTER_DIR = "karmaGWT";
+  private enum Resource {
+    LIB("lib"), ADAPTER("karmaGWT", "karma-gwt");
+
+    private final String myResourceName;
+    private final String myInstallName;
+
+    Resource(String resourceName) {
+      this(resourceName, resourceName);
+    }
+
+    Resource(String resourceName, String installName) {
+      myResourceName = resourceName;
+      myInstallName = installName;
+    }
+  }
 
   private static final Pattern BASE_PATH = Pattern.compile("%BASE_PATH%");
   private static final Pattern TEST_MODULE = Pattern.compile("'%TEST_MODULE%'");
@@ -64,16 +77,14 @@ public class RunTestsMojo extends AbstractMojo {
   private String myTestRunner;
   private Path myOutputPath;
   private String myTestModules;
+  private Path myKarmaConfig;
 
   public void execute()
       throws MojoExecutionException {
 
     initVars();
-    if (runAction(this::setupKarma, "failed to install Karma") && runAction(this::runKarma, "failed to execute Karma Runner")) {
-      getLog().info("Success");
-    } else {
-      getLog().error("Failure");
-    }
+    runAction(this::setupKarma, "failed to install Karma");
+    runAction(this::runKarma, "failed at karma");
   }
 
   private void initVars() {
@@ -87,7 +98,7 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
-    URI libs = this.getClass().getResource(LIB_DIR).toURI();
+    URI libs = this.getClass().getResource(Resource.LIB.myResourceName).toURI();
     processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
       try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
            BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
@@ -95,28 +106,37 @@ public class RunTestsMojo extends AbstractMojo {
         for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
           lines.add(line);
         }
+        String rFileName = resource.getFileName().toString();
+        Path rPath = myOutputPath.resolve(rFileName);
+        if (rFileName.equals("karma.conf.js")) {
+          myKarmaConfig = rPath;
+        }
         Files.write(
-            myOutputPath.resolve(resource.getFileName().toString()),
+            rPath,
             lines.stream().map(s ->
                 BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(myOutputPath.resolve(myTestRunner).toString())).
                 collect(Collectors.toList()),
             Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
       }
     });
-    ProcessBuilder processBuilder = new ProcessBuilder("npm");
-    processBuilder.command().add("install");
+    return runProcess("npm", "install");
+  }
+
+  private boolean runProcess(String... command) throws IOException, InterruptedException {
+    ProcessBuilder processBuilder = new ProcessBuilder(command);
     Process installDepProcess = processBuilder.inheritIO().directory(myOutputPath.toFile()).start();
     return installDepProcess.waitFor() == 0;
   }
 
-  private boolean runKarma() throws URISyntaxException, IOException {
-    Path targetDirectory = outputDirectory.toPath().resolve(ADAPTER_DIR);
-    URI resourceDirectory = this.getClass().getResource(ADAPTER_DIR).toURI();
+  private boolean runKarma() throws URISyntaxException, IOException, InterruptedException {
+    Path targetDirectory = outputDirectory.toPath().resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
+    Path karma = outputDirectory.toPath().resolve(Paths.get("node_modules", ".bin", "karma"));
+    URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
     processResources(resourceDirectory, fs -> {
       Files.createDirectories(targetDirectory);
       return fs.provider().getPath(resourceDirectory);
     }, resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString())));
-    return true;
+    return runProcess(karma.toAbsolutePath().toString(), "start", myKarmaConfig.toAbsolutePath().toString());
   }
 
   private interface ResourceProcessor {
@@ -144,9 +164,11 @@ public class RunTestsMojo extends AbstractMojo {
     boolean run() throws URISyntaxException, IOException, InterruptedException;
   }
 
-  private boolean runAction(Action action, String errorMessage) throws MojoExecutionException {
+  private void runAction(Action action, String errorMessage) throws MojoExecutionException {
     try {
-      return action.run();
+      if (!action.run()) {
+        throw new MojoExecutionException(errorMessage);
+      }
     } catch (URISyntaxException | IOException | InterruptedException e) {
       e.printStackTrace();
       throw new MojoExecutionException(errorMessage);

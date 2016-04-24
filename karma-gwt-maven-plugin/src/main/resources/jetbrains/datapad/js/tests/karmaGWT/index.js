@@ -39,7 +39,7 @@ function initGwtRunner(emitter,
 
     files.served.push({
       path: '/gwt-test-context.html',
-      contentPath: path.normalize(__dirname + '/../test-context.html'),
+      contentPath: path.normalize(__dirname + '/test-context.html'),
       isUrl: true,
       mtime: new Date()
     });

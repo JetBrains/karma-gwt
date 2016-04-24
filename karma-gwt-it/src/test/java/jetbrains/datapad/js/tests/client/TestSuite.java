@@ -28,12 +28,12 @@ class TestSuite extends KarmaTestSuite {
 
       }
     });
-    tests.add(new KarmaTest("empty failing test", true) {
-      @Override
-      protected void run() throws Throwable {
-        throw new RuntimeException("oops");
-      }
-    });
+//    tests.add(new KarmaTest("empty failing test", true) {
+//      @Override
+//      protected void run() throws Throwable {
+//        throw new RuntimeException("oops");
+//      }
+//    });
   }
 
 }
