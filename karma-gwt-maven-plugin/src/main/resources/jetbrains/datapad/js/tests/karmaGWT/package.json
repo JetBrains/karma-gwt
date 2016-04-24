@@ -1,0 +1,20 @@
+{
+  "name": "karma-gwt",
+  "version": "1.0.0",
+  "description": "a GWT plugin for karma",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/belarusian/karma-gwt.git"
+  },
+  "keywords": [
+    "GWT",
+    "karmajs"
+  ],
+  "author": "Sasha Malahov <sasha.malahov@jetbrains.com>",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "bugs": {
+    "url": "https://github.com/belarusian/karma-gwt/issues"
+  },
+  "homepage": "https://github.com/belarusian/karma-gwt#readme"
+}

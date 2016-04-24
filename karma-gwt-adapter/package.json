@@ -1,0 +1,29 @@
+{
+  "name": "karma-gwt",
+  "version": "1.0.0",
+  "description": "a GWT plugin for karma",
+  "main": "runner/lib/index.js",
+  "scripts": {
+    "install": "node link-runner.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/belarusian/karma-gwt.git"
+  },
+  "keywords": [
+    "GWT",
+    "karmajs"
+  ],
+  "author": "Sasha Malahov <sasha.malahov@jetbrains.com>",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "bugs": {
+    "url": "https://github.com/belarusian/karma-gwt/issues"
+  },
+  "homepage": "https://github.com/belarusian/karma-gwt#readme",
+  "devDependencies": {
+    "karma": "0.13.19",
+    "karma-junit-reporter": "0.3.8",
+    "karma-phantomjs-launcher": "1.0.0",
+    "phantomjs-prebuilt": "^2.1.5"
+  }
+}

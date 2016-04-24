@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>jetbrains.datapad.js.tests</groupId>
+  <artifactId>karma-gwt</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <java.source.level>1.8</java.source.level>
+    <java.target.level>1.8</java.target.level>
+
+    <gwt.version>2.7.0</gwt.version>
+    <gwtplugin.version>2.7.0</gwtplugin.version>
+    <guava.version>19.0</guava.version>
+
+    <mvn.compiler.plugin.version>3.5.1</mvn.compiler.plugin.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <gwt.version>2.7.0</gwt.version>
+    <gwtplugin.version>2.7.0</gwtplugin.version>
+    <guava.version>19.0</guava.version>
+  </properties>
+
+  <modules>
+    <module>karma-gwt-adapter</module>
+    <module>karma-gwt-maven-plugin</module>
+    <module>karma-gwt-it</module>
+  </modules>
+
+
+  <build>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${mvn.compiler.plugin.version}</version>
+        <configuration>
+            <source>${java.source.level}</source>
+            <target>${java.target.level}</target>
+          </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+
+</project>
