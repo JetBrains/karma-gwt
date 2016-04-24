@@ -20,11 +20,11 @@ import com.google.gwt.core.client.JavaScriptObject;
 
 public abstract class KarmaTest {
 
-  KarmaTest(String name) {
+  public KarmaTest(String name) {
     this(name, null);
   }
 
-  <T extends Exception> KarmaTest(String name, Class<T> expectedException) {
+  public <T extends Exception> KarmaTest(String name, Class<T> expectedException) {
     myName = name;
     myExpectedException = expectedException;
   }

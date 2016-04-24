@@ -31,10 +31,10 @@ public abstract class KarmaTestSuite {
   protected void afterAll(KarmaTest karmaTest) {
   }
 
-  void before(KarmaTest karmaTest) {
+  protected void before(KarmaTest karmaTest) {
   }
 
-  void after(KarmaTest karmaTest) {
+  protected void after(KarmaTest karmaTest) {
   }
 
   List<KarmaTest> registerTests() {
