@@ -70,7 +70,7 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 
-# Tests residude
+# Tests residue
 karma-gwt-it/node_modules
 karma-gwt-it/karma.conf.js
 karma-gwt-it/package.json
