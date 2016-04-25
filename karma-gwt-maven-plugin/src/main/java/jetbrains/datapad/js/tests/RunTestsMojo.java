@@ -76,11 +76,15 @@ public class RunTestsMojo extends AbstractMojo {
   @Parameter(property="testModules", required = true)
   private List<String> testModules;
 
-  private String myTestRunner;
-  private Path myOutputPath;
-  private Path myBuildPath;
-  private String myTestModules;
+  @Parameter(property="basePath")
+  private String basePath;
+
+  @Parameter(property="karmaPath")
+  private Path karmaPath;
+
   private Path myKarmaConfig;
+
+  private String myTestModules;
 
   public void execute()
       throws MojoExecutionException {
@@ -91,14 +95,18 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private void initVars() {
-    if (testRunner != null) {
-      myTestRunner = testRunner;
-    } else {
-      myTestRunner = projectArtifactId + "-" + projectVersion;
+    if (basePath == null) {
+      if (testRunner != null) {
+        basePath = outputDirectory.toPath().resolve(testRunner).toString();
+      } else {
+        basePath = outputDirectory.toPath().resolve(projectArtifactId + "-" + projectVersion).toString();
+      }
     }
-    myOutputPath = outputDirectory.toPath().getParent();
-    myBuildPath = outputDirectory.toPath();
+    karmaPath = outputDirectory.toPath().getParent();
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
+    getLog().info("basePath        = " + basePath);
+    getLog().info("karmaSetupPath  = " + karmaPath);
+    getLog().info("testModules     = " + myTestModules);
   }
 
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
@@ -111,15 +119,14 @@ public class RunTestsMojo extends AbstractMojo {
           lines.add(line);
         }
         String rFileName = resource.getFileName().toString();
-        Path rPath = myBuildPath.resolve(rFileName);
+        Path rPath = karmaPath.resolve(rFileName);
         if (rFileName.equals("karma.conf.js")) {
           myKarmaConfig = rPath;
         }
         Files.write(
             rPath,
-            lines.stream().map(s ->
-                BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(myBuildPath.resolve(myTestRunner).toString())).
-                collect(Collectors.toList()),
+            lines.stream().map(
+                s -> BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(basePath)).collect(Collectors.toList()),
             Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
       }
     });
@@ -128,18 +135,17 @@ public class RunTestsMojo extends AbstractMojo {
 
   private boolean runProcess(String... command) throws IOException, InterruptedException {
     ProcessBuilder processBuilder = new ProcessBuilder(command);
-    Process installDepProcess = processBuilder.inheritIO().directory(myOutputPath.toFile()).start();
+    Process installDepProcess = processBuilder.inheritIO().directory(karmaPath.toFile()).start();
     return installDepProcess.waitFor() == 0;
   }
 
   private boolean runKarma() throws URISyntaxException, IOException, InterruptedException {
-    Path targetDirectory = myOutputPath.resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
-    Path karma = myOutputPath.resolve(Paths.get("node_modules", ".bin", "karma"));
+    Path targetDirectory = karmaPath.resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
+    Path karma = karmaPath.resolve(Paths.get("node_modules", ".bin", "karma"));
+    Files.createDirectories(targetDirectory);
     URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
-    processResources(resourceDirectory, fs -> {
-      Files.createDirectories(targetDirectory);
-      return fs.provider().getPath(resourceDirectory);
-    }, resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString()), REPLACE_EXISTING));
+    processResources(resourceDirectory, fs -> fs.provider().getPath(resourceDirectory),
+        resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString()), REPLACE_EXISTING));
     return runProcess(karma.toAbsolutePath().toString(), "start", myKarmaConfig.toAbsolutePath().toString());
   }
 
