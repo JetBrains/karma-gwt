@@ -212,7 +212,7 @@ function Promise(executor, options) {
           listeners[i]();
         }
       } else {
-        console.warn("promise : " + promise.id + " : was previously " + promise.state + " : ignoring new : " + state, value);
+        console.error("promise " + promise.id + " was previously " + promise.state, new Error().stack);
       }
     }
   }

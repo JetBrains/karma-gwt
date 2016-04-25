@@ -23,15 +23,21 @@ import java.util.List;
 
 public class KarmaTestSuiteRunner {
 
+  private String myTestModule;
   private KarmaTestSuite[] myTestSuites;
 
   private KarmaTest myCurrentlyRunningTest;
 
   public static void run(KarmaTestSuite... testSuites) {
-    new KarmaTestSuiteRunner(testSuites).run();
+    new KarmaTestSuiteRunner("ANONYMOUS", testSuites).run();
   }
 
-  private KarmaTestSuiteRunner(KarmaTestSuite... testSuites) {
+  public static void run(String testModule, KarmaTestSuite... testSuites) {
+    new KarmaTestSuiteRunner(testModule, testSuites).run();
+  }
+
+  private KarmaTestSuiteRunner(String testModule, KarmaTestSuite... testSuites) {
+    myTestModule = testModule;
     myTestSuites = testSuites;
   }
 
@@ -84,7 +90,7 @@ public class KarmaTestSuiteRunner {
     }.connect(KarmaTestSuiteRunner.this);
   }
 
-  protected void setupErrorHandler() {
+  private void setupErrorHandler() {
     GWT.setUncaughtExceptionHandler(new GWT.UncaughtExceptionHandler() {
       @Override
       public void onUncaughtException(Throwable throwable) {
@@ -92,6 +98,7 @@ public class KarmaTestSuiteRunner {
       }
     });
   }
+
 
   public static native void log(String text) /*-{
     $wnd.simpleLog(text);
@@ -137,7 +144,6 @@ public class KarmaTestSuiteRunner {
       };
     }
     $wnd.__run_tests(map);
-
 
   }-*/;
 

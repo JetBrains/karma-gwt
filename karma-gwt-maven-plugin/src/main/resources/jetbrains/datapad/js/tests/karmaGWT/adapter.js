@@ -168,7 +168,7 @@
             return Promise;
           };
 
-          contentWindow.__run_tests = function (testSuites) {
+          contentWindow.__run_tests = function (testSuites, testModule) {
 
             function _runTests() {
               testsRunning = true;
@@ -179,24 +179,14 @@
             }
 
             function _afterTests() {
-              setTimeout(function () {
-                if (!pendingRunners.length) {
-                  destroyModule();
-                  accept();
-                } else {
-                  pendingRunners.pop()().after(_afterTests);
-                }
-              }, 1000);
+              destroyModule();
+              accept();
             }
 
             if (!testsRunning) {
               return _runTests().after(_afterTests);
             } else {
-              return new Promise(function (accept) {
-                pendingRunners.push(function () {
-                  return _runTests().after(accept);
-                });
-              });
+              failTesting("test module " + testModule + " cannot inherit another test module.")();
             }
 
           };
@@ -207,7 +197,7 @@
     };
   }
 
-  var testCounter = 0, pendingRunners = [], testsRunning;
+  var testCounter = 0, testsRunning;
 
 
   function createStartFn(karmaRunner) {
