@@ -7,8 +7,16 @@
   <packaging>maven-plugin</packaging>
 
   <name>karma-gwt-maven-plugin Maven Plugin</name>
-
+  <description>A plugin to run GWT tests on Karma</description>
   <url>https://github.com/belarusian/karma-gwt.git</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <parent>
     <groupId>jetbrains.datapad.js.tests</groupId>

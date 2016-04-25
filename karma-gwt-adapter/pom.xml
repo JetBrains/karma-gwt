@@ -7,6 +7,16 @@
   <artifactId>karma-gwt-adapter</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <url>https://github.com/belarusian/karma-gwt.git</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <properties>
     <java.source.level>1.7</java.source.level>
     <java.target.level>1.7</java.target.level>

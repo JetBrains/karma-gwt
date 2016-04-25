@@ -9,6 +9,16 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <name>karma-gwt Runner Plugin</name>
+  <url>https://github.com/belarusian/karma-gwt.git</url>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <properties>
     <java.source.level>1.8</java.source.level>
     <java.target.level>1.8</java.target.level>
