@@ -7,7 +7,13 @@
   <artifactId>karma-gwt-adapter</artifactId>
   <version>1.0</version>
 
-  <url>https://github.com/belarusian/karma-gwt.git</url>
+  <url>https://github.com/JetBrains/karma-gwt</url>
+
+  <parent>
+    <groupId>jetbrains.datapad.js.tests</groupId>
+    <artifactId>karma-gwt</artifactId>
+    <version>1.0</version>
+  </parent>
 
   <licenses>
     <license>
@@ -21,12 +27,6 @@
     <java.source.level>1.7</java.source.level>
     <java.target.level>1.7</java.target.level>
   </properties>
-
-  <parent>
-    <groupId>jetbrains.datapad.js.tests</groupId>
-    <artifactId>karma-gwt</artifactId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
 
   <dependencies>
 
