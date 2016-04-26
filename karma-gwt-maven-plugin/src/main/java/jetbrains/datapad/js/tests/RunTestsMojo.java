@@ -141,7 +141,7 @@ public class RunTestsMojo extends AbstractMojo {
             rPath,
             lines.stream().map(
                 s -> BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(basePath)).collect(Collectors.toList()),
-            Charset.defaultCharset(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            Charset.defaultCharset());
       }
     });
     return runProcess("npm", "install");
