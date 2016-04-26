@@ -59,8 +59,19 @@ public class RunTestsMojo extends AbstractMojo {
     }
   }
 
+  private enum TestBrowser {
+    CHROME("Chrome"), PHANTOM("PhantomJS");
+
+    private final String myConfigValue;
+
+    TestBrowser(String configValue) {
+      myConfigValue = configValue;
+    }
+  }
+
   private static final Pattern BASE_PATH = Pattern.compile("%BASE_PATH%");
   private static final Pattern TEST_MODULE = Pattern.compile("'%TEST_MODULE%'");
+  private static final Pattern TEST_BROWSER = Pattern.compile("%TEST_BROWSER%");
 
   @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)
   private File outputDirectory;
@@ -77,6 +88,9 @@ public class RunTestsMojo extends AbstractMojo {
   @Parameter(property="testModules")
   private List<String> testModules;
 
+  @Parameter(defaultValue="PHANTOM", property="testBrowsers")
+  private TestBrowser testBrowser;
+
   @Parameter(property="configPath")
   private File configPath;
 
@@ -84,13 +98,11 @@ public class RunTestsMojo extends AbstractMojo {
   private String basePath;
 
   @Parameter(property="karmaBin")
-  private File karma;
+  private File karmaBin;
 
   private Path karmaSetupPath;
 
-  private Path myKarmaConfig;
-
-  private String myTestModules;
+  private Path karmaConfig;
 
   public void execute()
       throws MojoExecutionException {
@@ -112,16 +124,19 @@ public class RunTestsMojo extends AbstractMojo {
         basePath = outputDirectory.toPath().resolve(projectArtifactId + "-" + projectVersion).toString();
       }
     }
-    if (karma == null) {
+    if (karmaBin == null) {
       karmaSetupPath = outputDirectory.toPath().getParent();
-      karma = karmaSetupPath.toFile();
+      karmaBin = karmaSetupPath.toFile();
     } else {
-      karmaSetupPath = karma.toPath();
+      karmaSetupPath = karmaBin.toPath();
     }
-    myKarmaConfig = karmaSetupPath.resolve("karma.conf.js");
-    myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
+    karmaConfig = karmaSetupPath.resolve("karma.conf.js");
     validatePath(Paths.get(basePath).toAbsolutePath(), "basePath '" + basePath + "' doesn't exist");
     validatePath(karmaSetupPath.toAbsolutePath(), "karmaSetupPath '" + karmaSetupPath + "' doesn't exist");
+  }
+
+  private String testModules() {
+    return testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
   }
 
   private void validatePath(Path path, String errorMessage) throws MojoExecutionException {
@@ -138,11 +153,13 @@ public class RunTestsMojo extends AbstractMojo {
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
           List<String> lines = new ArrayList<>();
           for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
+            line = TEST_MODULE.matcher(line).replaceAll(testModules());
+            line = BASE_PATH.matcher(line).replaceAll(basePath);
+            line = TEST_BROWSER.matcher(line).replaceAll(testBrowser.myConfigValue);
             lines.add(line);
           }
           String rFileName = resource.getFileName().toString();
-          Files.write(karmaSetupPath.resolve(rFileName), lines.stream().map(s -> BASE_PATH.matcher(updateTestModules(s)).replaceAll(basePath)).collect(Collectors.toList()),
-              Charset.defaultCharset());
+          Files.write(karmaSetupPath.resolve(rFileName), lines, Charset.defaultCharset());
         }
       });
     } else {
@@ -155,14 +172,10 @@ public class RunTestsMojo extends AbstractMojo {
     return runProcess("npm", "install");
   }
 
-  private String updateTestModules(String s) {
-    return TEST_MODULE.matcher(s).replaceAll(myTestModules);
-  }
-
   private boolean runProcess(String... command) throws IOException, InterruptedException {
     getLog().info(String.join(" ", Arrays.asList(command)));
     ProcessBuilder processBuilder = new ProcessBuilder(command);
-    Process installDepProcess = processBuilder.inheritIO().directory(karma).start();
+    Process installDepProcess = processBuilder.inheritIO().directory(karmaSetupPath.toFile()).start();
     return installDepProcess.waitFor() == 0;
   }
 
@@ -173,7 +186,7 @@ public class RunTestsMojo extends AbstractMojo {
     URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
     processResources(resourceDirectory, fs -> fs.provider().getPath(resourceDirectory),
         resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString()), REPLACE_EXISTING));
-    return runProcess(karma.toAbsolutePath().toString(), "start", myKarmaConfig.toAbsolutePath().toString());
+    return runProcess(karma.toAbsolutePath().toString(), "start", karmaConfig.toAbsolutePath().toString());
   }
 
   private interface ResourceProcessor {
