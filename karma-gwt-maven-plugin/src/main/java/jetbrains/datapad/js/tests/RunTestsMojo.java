@@ -73,13 +73,18 @@ public class RunTestsMojo extends AbstractMojo {
   @Parameter(property="testRunner")
   private String testRunner;
 
-  @Parameter(property="testModules", required = true)
+  @Parameter(property="testModules")
   private List<String> testModules;
+
+  @Parameter(property="configPath")
+  private File configPath;
 
   @Parameter(property="basePath")
   private String basePath;
 
-  @Parameter(property="karmaPath")
+  @Parameter(property="karmaBin")
+  private File karma;
+
   private Path karmaPath;
 
   private Path myKarmaConfig;
@@ -92,9 +97,13 @@ public class RunTestsMojo extends AbstractMojo {
     initVars();
     runAction(this::setupKarma, "failed to install Karma");
     runAction(this::runKarma, "failed at karma");
+
   }
 
-  private void initVars() {
+  private void initVars() throws MojoExecutionException {
+    if (configPath == null && (testModules == null || testModules.isEmpty())) {
+      throw new MojoExecutionException("either provide configurations path or testModules");
+    }
     if (basePath == null) {
       if (testRunner != null) {
         basePath = outputDirectory.toPath().resolve(testRunner).toString();
@@ -102,7 +111,12 @@ public class RunTestsMojo extends AbstractMojo {
         basePath = outputDirectory.toPath().resolve(projectArtifactId + "-" + projectVersion).toString();
       }
     }
-    karmaPath = outputDirectory.toPath().getParent();
+    if (karma == null) {
+      karmaPath = outputDirectory.toPath().getParent();
+      karma = karmaPath.toFile();
+    } else {
+      karmaPath = karma.toPath();
+    }
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
     getLog().info("basePath        = " + basePath);
     getLog().info("karmaSetupPath  = " + karmaPath);
@@ -110,7 +124,7 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
-    URI libs = this.getClass().getResource(Resource.LIB.myResourceName).toURI();
+    URI libs = configPath != null ? configPath.toURI() : this.getClass().getResource(Resource.LIB.myResourceName).toURI();
     processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
       try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
            BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
@@ -135,7 +149,7 @@ public class RunTestsMojo extends AbstractMojo {
 
   private boolean runProcess(String... command) throws IOException, InterruptedException {
     ProcessBuilder processBuilder = new ProcessBuilder(command);
-    Process installDepProcess = processBuilder.inheritIO().directory(karmaPath.toFile()).start();
+    Process installDepProcess = processBuilder.inheritIO().directory(karma).start();
     return installDepProcess.waitFor() == 0;
   }
 
