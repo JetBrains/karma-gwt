@@ -118,9 +118,14 @@ public class RunTestsMojo extends AbstractMojo {
       karmaPath = karma.toPath();
     }
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
-    getLog().info("basePath        = " + basePath);
-    getLog().info("karmaSetupPath  = " + karmaPath);
-    getLog().info("testModules     = " + myTestModules);
+    validatePath(Paths.get(basePath).toAbsolutePath(), "basePath '" + basePath + "' doesn't exist");
+    validatePath(karmaPath.toAbsolutePath(), "karmaSetupPath '" + karmaPath + "' doesn't exist");
+  }
+
+  private void validatePath(Path path, String errorMessage) throws MojoExecutionException {
+    if (!path.toFile().exists()) {
+      throw new MojoExecutionException(errorMessage);
+    }
   }
 
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
@@ -140,11 +145,15 @@ public class RunTestsMojo extends AbstractMojo {
         Files.write(
             rPath,
             lines.stream().map(
-                s -> BASE_PATH.matcher(TEST_MODULE.matcher(s).replaceAll(myTestModules)).replaceAll(basePath)).collect(Collectors.toList()),
+                s -> BASE_PATH.matcher(updateTestModules(s)).replaceAll(basePath)).collect(Collectors.toList()),
             Charset.defaultCharset());
       }
     });
     return runProcess("npm", "install");
+  }
+
+  private String updateTestModules(String s) {
+    return TEST_MODULE.matcher(s).replaceAll(myTestModules);
   }
 
   private boolean runProcess(String... command) throws IOException, InterruptedException {
