@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <plugins>
+    <plugin>
+      <name>karma-gwt-maven-plugin Maven Plugin</name>
+      <prefix>karma-gwt-maven-plugin</prefix>
+      <artifactId>karma-gwt-maven-plugin</artifactId>
+    </plugin>
+  </plugins>
+</metadata>
