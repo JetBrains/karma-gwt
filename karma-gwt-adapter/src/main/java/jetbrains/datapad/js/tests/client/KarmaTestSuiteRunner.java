@@ -109,7 +109,7 @@ public class KarmaTestSuiteRunner {
     $wnd.logError(text);
   }-*/;
 
-  static void printStackTrace(Throwable event) {
+  public static void printStackTrace(Throwable event) {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(event).append("\n");
     for (StackTraceElement stackTraceElement : event.getStackTrace()) {
