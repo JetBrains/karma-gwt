@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -85,7 +86,7 @@ public class RunTestsMojo extends AbstractMojo {
   @Parameter(property="karmaBin")
   private File karma;
 
-  private Path karmaPath;
+  private Path karmaSetupPath;
 
   private Path myKarmaConfig;
 
@@ -112,14 +113,15 @@ public class RunTestsMojo extends AbstractMojo {
       }
     }
     if (karma == null) {
-      karmaPath = outputDirectory.toPath().getParent();
-      karma = karmaPath.toFile();
+      karmaSetupPath = outputDirectory.toPath().getParent();
+      karma = karmaSetupPath.toFile();
     } else {
-      karmaPath = karma.toPath();
+      karmaSetupPath = karma.toPath();
     }
+    myKarmaConfig = karmaSetupPath.resolve("karma.conf.js");
     myTestModules = testModules.stream().map(testModule -> "'" + testModule + "'").collect(Collectors.joining(","));
     validatePath(Paths.get(basePath).toAbsolutePath(), "basePath '" + basePath + "' doesn't exist");
-    validatePath(karmaPath.toAbsolutePath(), "karmaSetupPath '" + karmaPath + "' doesn't exist");
+    validatePath(karmaSetupPath.toAbsolutePath(), "karmaSetupPath '" + karmaSetupPath + "' doesn't exist");
   }
 
   private void validatePath(Path path, String errorMessage) throws MojoExecutionException {
@@ -129,26 +131,27 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
-    URI libs = configPath != null ? configPath.toURI() : this.getClass().getResource(Resource.LIB.myResourceName).toURI();
-    processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
-      try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
-           BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-        List<String> lines = new ArrayList<>();
-        for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
-          lines.add(line);
+    if (configPath == null) {
+      URI libs = this.getClass().getResource(Resource.LIB.myResourceName).toURI();
+      processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
+        try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+          List<String> lines = new ArrayList<>();
+          for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
+            lines.add(line);
+          }
+          String rFileName = resource.getFileName().toString();
+          Files.write(karmaSetupPath.resolve(rFileName), lines.stream().map(s -> BASE_PATH.matcher(updateTestModules(s)).replaceAll(basePath)).collect(Collectors.toList()),
+              Charset.defaultCharset());
         }
-        String rFileName = resource.getFileName().toString();
-        Path rPath = karmaPath.resolve(rFileName);
-        if (rFileName.equals("karma.conf.js")) {
-          myKarmaConfig = rPath;
+      });
+    } else {
+      try (DirectoryStream<Path> ds = Files.newDirectoryStream(configPath.toPath())) {
+        for (Path p : ds) {
+          Files.copy(p, karmaSetupPath.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
         }
-        Files.write(
-            rPath,
-            lines.stream().map(
-                s -> BASE_PATH.matcher(updateTestModules(s)).replaceAll(basePath)).collect(Collectors.toList()),
-            Charset.defaultCharset());
       }
-    });
+    }
     return runProcess("npm", "install");
   }
 
@@ -157,14 +160,15 @@ public class RunTestsMojo extends AbstractMojo {
   }
 
   private boolean runProcess(String... command) throws IOException, InterruptedException {
+    getLog().info(String.join(" ", Arrays.asList(command)));
     ProcessBuilder processBuilder = new ProcessBuilder(command);
     Process installDepProcess = processBuilder.inheritIO().directory(karma).start();
     return installDepProcess.waitFor() == 0;
   }
 
   private boolean runKarma() throws URISyntaxException, IOException, InterruptedException {
-    Path targetDirectory = karmaPath.resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
-    Path karma = karmaPath.resolve(Paths.get("node_modules", ".bin", "karma"));
+    Path targetDirectory = karmaSetupPath.resolve(Paths.get("node_modules", Resource.ADAPTER.myInstallName));
+    Path karma = karmaSetupPath.resolve(Paths.get("node_modules", ".bin", "karma"));
     Files.createDirectories(targetDirectory);
     URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
     processResources(resourceDirectory, fs -> fs.provider().getPath(resourceDirectory),
