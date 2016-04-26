@@ -10,7 +10,9 @@
   <packaging>pom</packaging>
 
   <name>karma-gwt Runner Plugin</name>
-  <url>https://github.com/belarusian/karma-gwt.git</url>
+
+  <url>https://github.com/JetBrains/karma-gwt</url>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -31,8 +33,6 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-    <github.global.server>github</github.global.server>
   </properties>
 
   <distributionManagement>
@@ -84,6 +84,7 @@
           <merge>true</merge>
           <repositoryName>karma-gwt</repositoryName>
           <repositoryOwner>JetBrains</repositoryOwner>
+          <server>github</server>
         </configuration>
         <executions>
           <execution>
