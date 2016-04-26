@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>karma-gwt-adapter</artifactId>
+  <version>1.0</version>
+
+  <url>https://github.com/JetBrains/karma-gwt</url>
+
+  <parent>
+    <groupId>jetbrains.datapad.js.tests</groupId>
+    <artifactId>karma-gwt</artifactId>
+    <version>1.0</version>
+  </parent>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <properties>
+    <java.source.level>1.7</java.source.level>
+    <java.target.level>1.7</java.target.level>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-gwt</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <resources>
+
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.java</include>
+          <include>**/*.gwt.xml</include>
+        </includes>
+      </resource>
+
+    </resources>
+
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${mvn.compiler.plugin.version}</version>
+        <configuration>
+            <source>${java.source.level}</source>
+            <target>${java.target.level}</target>
+          </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>${gwtplugin.version}</version>
+        <configuration>
+          <extraJvmArgs>-Xmx1200m</extraJvmArgs>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+
+</project>
