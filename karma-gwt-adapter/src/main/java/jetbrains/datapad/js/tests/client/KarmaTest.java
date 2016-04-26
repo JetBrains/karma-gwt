@@ -62,7 +62,7 @@ public abstract class KarmaTest {
     fail(new Throwable(message));
   }
 
-  protected void makeAsync() {
+  public void makeAsync() {
     myResultAsync = true;
   }
 
