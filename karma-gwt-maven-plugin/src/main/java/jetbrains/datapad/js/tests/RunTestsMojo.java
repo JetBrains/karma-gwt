@@ -148,7 +148,7 @@ public class RunTestsMojo extends AbstractMojo {
   private boolean setupKarma() throws URISyntaxException, IOException, InterruptedException {
     if (configPath == null) {
       URI libs = this.getClass().getResource(Resource.LIB.myResourceName).toURI();
-      processResources(libs, fs -> fs.provider().getPath(libs), resource -> {
+      processResources(libs, resource -> {
         try (InputStreamReader inputStreamReader = new InputStreamReader(Files.newInputStream(resource));
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
           List<String> lines = new ArrayList<>();
@@ -184,7 +184,7 @@ public class RunTestsMojo extends AbstractMojo {
     Path karma = karmaSetupPath.resolve(Paths.get("node_modules", ".bin", "karma"));
     Files.createDirectories(targetDirectory);
     URI resourceDirectory = this.getClass().getResource(Resource.ADAPTER.myResourceName).toURI();
-    processResources(resourceDirectory, fs -> fs.provider().getPath(resourceDirectory),
+    processResources(resourceDirectory,
         resource -> Files.copy(resource, targetDirectory.resolve(resource.getFileName().toString()), REPLACE_EXISTING));
     return runProcess(karma.toAbsolutePath().toString(), "start", karmaConfig.toAbsolutePath().toString());
   }
@@ -193,15 +193,11 @@ public class RunTestsMojo extends AbstractMojo {
     void process(Path resource) throws IOException;
   }
 
-  private interface ContainerProvider {
-    Path getContainer(FileSystem fs) throws URISyntaxException, IOException;
-  }
-
-  private void processResources(URI contentUri, ContainerProvider containerProvider, ResourceProcessor processor) throws URISyntaxException, IOException {
+  private void processResources(URI contentUri, ResourceProcessor processor) throws URISyntaxException, IOException {
     try (
         FileSystem fs = FileSystems.newFileSystem(contentUri, Collections.emptyMap())
     ) {
-      Path containerPath = containerProvider.getContainer(fs);
+      Path containerPath = fs.provider().getPath(contentUri);
       try (DirectoryStream<Path> ds = Files.newDirectoryStream(containerPath)) {
         for (Path p : ds) {
           processor.process(p);
