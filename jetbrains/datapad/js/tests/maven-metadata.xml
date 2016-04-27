@@ -4,7 +4,7 @@
     <plugin>
       <name>karma-gwt-plugin Maven Plugin</name>
       <prefix>karma-gwt-maven-plugin</prefix>
-      <artifactId>karma-gwt-plugin</artifactId>
+      <artifactId>karma-gwt-maven</artifactId>
     </plugin>
   </plugins>
 </metadata>
