@@ -2,9 +2,9 @@
 <metadata>
   <plugins>
     <plugin>
-      <name>karma-gwt-maven-plugin Maven Plugin</name>
+      <name>karma-gwt-plugin Maven Plugin</name>
       <prefix>karma-gwt-maven-plugin</prefix>
-      <artifactId>karma-gwt-maven-plugin</artifactId>
+      <artifactId>karma-gwt-plugin</artifactId>
     </plugin>
   </plugins>
 </metadata>
