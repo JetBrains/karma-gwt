@@ -58,20 +58,23 @@ function initGwtRunner(emitter,
 
       gwt_config.__testModules.push('/' + path.join(dirname, path.basename(testFile)));
 
-      fs.readdirSync(dirpath).forEach(function(fileName){
-        var contentPath = path.join(dirpath, fileName);
-        var fileUrl = '/' + path.join(dirname, fileName);
-        if (fs.lstatSync(contentPath).isDirectory()) {
-          throw "IllegalStateException: " + testFile + " is located in an unexpected location";
-        } else {
-          files.served.push({
-            path: fileUrl,
-            contentPath: contentPath,
-            isUrl: true,
-            mtime: new Date()
-          });
-        }
-      });
+      serve(dirpath, dirname, '/');
+
+      function serve(dirpath, dirname, url) {
+        fs.readdirSync(dirpath).forEach(function(fileName){
+          var contentPath = path.join(dirpath, fileName);
+          if (fs.lstatSync(contentPath).isDirectory()) {
+            serve(contentPath, fileName, url + dirname + '/');
+          } else {
+            files.served.push({
+              path: url + dirname + '/' + fileName,
+              contentPath: contentPath,
+              isUrl: true,
+              mtime: new Date()
+            });
+          }
+        });
+      }
     });
 
   });
