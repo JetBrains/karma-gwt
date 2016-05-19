@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>karma-gwt-maven-plugin</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <packaging>maven-plugin</packaging>
 
   <name>karma-gwt-maven-plugin Maven Plugin</name>
@@ -22,7 +22,7 @@
   <parent>
     <groupId>jetbrains.datapad.js.tests</groupId>
     <artifactId>karma-gwt</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
   </parent>
 
   <dependencies>
