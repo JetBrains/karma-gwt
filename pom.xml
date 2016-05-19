@@ -6,7 +6,7 @@
 
   <groupId>jetbrains.datapad.js.tests</groupId>
   <artifactId>karma-gwt</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <packaging>pom</packaging>
 
   <name>karma-gwt Runner Plugin</name>
